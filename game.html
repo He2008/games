@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<style>
+    #id-canvas {
+        border: 1px solid
+    }
+</style>
+
+<head>
+    <meta charset="UTF-8">
+    <title>game1</title>
+</head>
+
+<body>
+    <canvas id="id-canvas" width="400" height="300">
+
+    </canvas>
+    <script>
+        var log = console.log.bind(console)
+        // untils
+        var imageFromPath = function (path) {
+            var img = new Image();
+            img.src = path;
+            return img
+        }
+
+        // paddle
+        var Paddle = function () {
+            var image = imageFromPath('./B.jpg')
+            var o = {
+                image: image,
+                x: 100,
+                y: 200,
+                speed: 10
+            }
+            o.moveLeft = function () {
+                o.x -= o.speed
+            }
+            o.moveRight = function () {
+                o.x += o.speed
+            }
+            o.collide = function (guaImage) {
+                guaImage
+            }
+            return o
+        }
+
+        var Ball = function () {
+            var image = imageFromPath('./ball.png')
+            var o = {
+                image: image,
+                x: 100,
+                y: 100,
+                speedX: 15,
+                speedY: 15,
+                fired: false
+            }
+            o.move = function () {
+                if (o.fired) {
+                    if (o.x > 400 || o.x < 0) {
+                        o.speedX = -o.speedX
+                    }
+                    if (o.y > 300 || o.y < 0) {
+                        o.speedY = -o.speedY
+                    }
+                    o.x += o.speedX
+                    o.y += o.speedY
+                }
+            }
+            o.fire = function () {
+                o.fired = true
+            }
+            return o
+        }
+
+        var VarGame = function () {
+            var g = {
+                actions: {},
+                keydowns: {}
+            }
+            var canvas = document.getElementById("id-canvas");
+            var context = canvas.getContext('2d');
+            g.canvas = canvas;
+            g.context = context
+            // drawImage
+            g.drawImage = function (VarImage) {
+                g.context.drawImage(VarImage.image, VarImage.x, VarImage.y);
+            }
+
+            // events
+            window.addEventListener('keydown', function (event) {
+                var key = event.key
+                g.keydowns[key] = true;
+
+            })
+            window.addEventListener('keyup', function (event) {
+                var key = event.key
+                g.keydowns[key] = false;
+
+            })
+            // resgiset
+            g.registerActions = function (key, callback) {
+                g.actions[key] = callback;
+
+            }
+
+            // timer
+            setInterval(function () {
+                // update events
+                var actions = Object.keys(g.actions)
+                log(actions)
+                for (var i = 0; i < actions.length; i++) {
+                    var key = actions[i]
+                    if (g.keydowns[key]) {
+                        g.actions[key]()
+                    }
+                }
+                // update
+                g.update()
+
+                // clean
+                context.clearRect(0, 0, canvas.width, canvas.height);
+
+                // draw
+                g.draw()
+
+            }, 1000 / 24)
+
+            return g
+        }
+
+
+
+
+        var __main = function () {
+            var game = VarGame()
+            var paddle = Paddle()
+            var ball = Ball()
+
+            game.registerActions('a', function () {
+                paddle.moveLeft()
+            })
+            game.registerActions('d', function () {
+                paddle.moveRight()
+            })
+            game.registerActions('f', function () {
+                ball.fire()
+            })
+            game.update = function () {
+                ball.move()
+                if (paddle.collide(ball)) {
+                    ball.speedX *= -1
+                    ball.speedY *= -1
+                }
+            }
+            game.draw = function () {
+                game.drawImage(paddle)
+                game.drawImage(ball)
+            }
+        }
+        __main()
+    </script>
+</body>
+
+</html>
